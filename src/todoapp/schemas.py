@@ -3,6 +3,13 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from .security import MAX_PASSWORD_BYTES
 
 
+class Token(BaseModel):
+    """OAuth2 token response, as expected by OAuth2 clients and the /docs Authorize button."""
+
+    access_token: str
+    token_type: str = "bearer"
+
+
 class CreateUserRequest(BaseModel):
     """Body for creating a user."""
 

@@ -11,3 +11,6 @@ wheels/
 
 # SQLite database
 todosapp.db
+
+# Local secrets
+.env
