@@ -4,7 +4,7 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Path, status
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from . import models
 from .database import SessionLocal, engine
@@ -12,17 +12,17 @@ from .models import Todos
 from .schemas import TodoRead, TodoRequest
 
 
-def get_db():
+async def get_db():
     # Closing the session rolls back any uncommitted work; errors propagate to FastAPI.
-    with SessionLocal() as db:
+    async with SessionLocal() as db:
         yield db
 
 
-DbSession = Annotated[Session, Depends(get_db)]
+DbSession = Annotated[AsyncSession, Depends(get_db)]
 
 
-def get_todo(db: DbSession, todo_id: Annotated[int, Path(gt=0)]) -> Todos:
-    todo = db.get(Todos, todo_id)
+async def get_todo(db: DbSession, todo_id: Annotated[int, Path(gt=0)]) -> Todos:
+    todo = await db.get(Todos, todo_id)
     if todo is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Todo not found")
     return todo
@@ -34,49 +34,49 @@ TodoDep = Annotated[Todos, Depends(get_todo)]
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Create tables once on startup, not as an import side effect.
-    models.Base.metadata.create_all(bind=engine)
+    async with engine.begin() as conn:
+        await conn.run_sync(models.Base.metadata.create_all)
     yield
     # Close pooled connections on shutdown.
-    engine.dispose()
+    await engine.dispose()
 
 
 app = FastAPI(lifespan=lifespan)
 
 
-# Routes are plain `def` because the SQLAlchemy session is synchronous;
-# FastAPI runs them in a thread pool so they don't block the event loop.
+# Routes are `async def`: every database call is awaited on the async session.
 
 
 @app.get("/todos", response_model=list[TodoRead])
-def list_todos(db: DbSession):
-    return db.scalars(select(Todos)).all()
+async def list_todos(db: DbSession):
+    return (await db.scalars(select(Todos))).all()
 
 
 @app.get("/todos/{todo_id}", response_model=TodoRead)
-def get_todo_by_id(todo: TodoDep):
+async def get_todo_by_id(todo: TodoDep):
     return todo
 
 
 @app.post("/todos", response_model=TodoRead, status_code=status.HTTP_201_CREATED)
-def create_todo(db: DbSession, body: TodoRequest):
+async def create_todo(db: DbSession, body: TodoRequest):
     todo = Todos(**body.model_dump())
     db.add(todo)
-    db.commit()
-    db.refresh(todo)
+    await db.commit()
+    await db.refresh(todo)
     return todo
 
 
 @app.put("/todos/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
-def update_todo(db: DbSession, todo: TodoDep, body: TodoRequest):
+async def update_todo(db: DbSession, todo: TodoDep, body: TodoRequest):
     for field, value in body.model_dump().items():
         setattr(todo, field, value)
-    db.commit()
+    await db.commit()
 
 
 @app.delete("/todos/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_todo(db: DbSession, todo: TodoDep):
-    db.delete(todo)
-    db.commit()
+async def delete_todo(db: DbSession, todo: TodoDep):
+    await db.delete(todo)
+    await db.commit()
 
 
 def run() -> None:

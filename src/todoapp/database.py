@@ -1,10 +1,12 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.orm import declarative_base
 
-SQLALCHEMY_DATABASE_URL='sqlite:///./todos.db'
+SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./todos.db"
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={'check_same_thread': False})
+engine = create_async_engine(SQLALCHEMY_DATABASE_URL)
 
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+# expire_on_commit=False: attributes stay readable after commit without an implicit
+# (non-awaitable) reload, which would raise MissingGreenlet.
+SessionLocal = async_sessionmaker(engine, autoflush=False, expire_on_commit=False)
 
 Base = declarative_base()
