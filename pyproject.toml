@@ -1,0 +1,32 @@
+[project]
+name = "todoapp"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Sergey Samarkin", email = "s.samarkin@videopro.com.au" }
+]
+requires-python = ">=3.15"
+dependencies = [
+    "fastapi[standard]>=0.162.0",
+    "sqlalchemy>=2.1.6",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[project.scripts]
+todoapp = "todoapp.main:run"
+
+[build-system]
+requires = ["uv_build>=0.13.6,<0.14.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]  # pycodestyle, pyflakes, import sorting, bugbear, pyupgrade
+
+[dependency-groups]
+dev = [
+    "ruff>=0.17.3",
+]
