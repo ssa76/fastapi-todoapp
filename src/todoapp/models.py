@@ -28,6 +28,4 @@ class Todos(Base):
     description: Mapped[str]
     priority: Mapped[int]
     complete: Mapped[bool] = mapped_column(default=False)
-
-    # Nullable until auth sets the owner on create.
-    owner_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))

@@ -1,15 +1,38 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+
+from .security import MAX_PASSWORD_BYTES
 
 
 class CreateUserRequest(BaseModel):
     """Body for creating a user."""
 
+    username: str = Field(min_length=3)
+    email: EmailStr
+    first_name: str = Field(min_length=1)
+    last_name: str = Field(min_length=1)
+    password: str = Field(min_length=8)
+    role: str
+
+    @field_validator("password")
+    @classmethod
+    def password_fits_bcrypt(cls, v: str) -> str:
+        if len(v.encode()) > MAX_PASSWORD_BYTES:
+            raise ValueError(f"password must be at most {MAX_PASSWORD_BYTES} bytes")
+        return v
+
+
+class UserRead(BaseModel):
+    """A user as returned by the API (never includes the password hash)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
     username: str
     email: str
     first_name: str
     last_name: str
-    password: str
     role: str
+    is_active: bool
 
 
 class TodoRequest(BaseModel):
