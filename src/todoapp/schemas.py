@@ -1,6 +1,17 @@
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class CreateUserRequest(BaseModel):
+    """Body for creating a user."""
+
+    username: str
+    email: str
+    first_name: str
+    last_name: str
+    password: str
+    role: str
+
+
 class TodoRequest(BaseModel):
     """Body for creating or replacing a todo."""
 

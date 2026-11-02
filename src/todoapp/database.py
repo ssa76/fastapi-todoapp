@@ -1,13 +1,20 @@
 from typing import Annotated
 
 from fastapi import Depends
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
-from sqlalchemy import event
 
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./todosapp.db"
 
 engine = create_async_engine(SQLALCHEMY_DATABASE_URL)
+
+
+@event.listens_for(engine.sync_engine, "connect")
+def _enable_sqlite_fks(dbapi_conn, _):
+    # SQLite ignores foreign keys unless enabled on each new connection.
+    dbapi_conn.execute("PRAGMA foreign_keys=ON")
+
 
 # expire_on_commit=False: attributes stay readable after commit without an implicit
 # (non-awaitable) reload, which would raise MissingGreenlet.
@@ -23,8 +30,3 @@ async def get_db():
 
 
 DbSession = Annotated[AsyncSession, Depends(get_db)]
-
-
-@event.listens_for(engine.sync_engine, "connect")
-def _enable_sqlite(dbapi_conn, _):
-    dbapi_conn.execute("PRAGMA foreign_keys=ON")
