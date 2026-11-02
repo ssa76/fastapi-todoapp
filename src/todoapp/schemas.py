@@ -27,7 +27,7 @@ class TodoRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    title: str | None
-    description: str | None
-    priority: int | None
+    title: str
+    description: str
+    priority: int
     complete: bool

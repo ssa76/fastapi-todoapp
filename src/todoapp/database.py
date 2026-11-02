@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import Depends
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import DeclarativeBase
 
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./todosapp.db"
 
@@ -20,7 +20,9 @@ def _enable_sqlite_fks(dbapi_conn, _):
 # (non-awaitable) reload, which would raise MissingGreenlet.
 SessionLocal = async_sessionmaker(engine, autoflush=False, expire_on_commit=False)
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    pass
 
 
 async def get_db():
