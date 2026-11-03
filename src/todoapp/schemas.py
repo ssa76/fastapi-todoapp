@@ -1,6 +1,18 @@
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from typing import Annotated
+
+from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field, model_validator
 
 from .security import MAX_PASSWORD_BYTES
+
+
+def _fits_bcrypt(v: str) -> str:
+    if len(v.encode()) > MAX_PASSWORD_BYTES:
+        raise ValueError(f"password must be at most {MAX_PASSWORD_BYTES} bytes")
+    return v
+
+
+# Rules for any new password (sign-up or change): 8 chars minimum, bcrypt's 72-byte maximum.
+NewPassword = Annotated[str, Field(min_length=8), AfterValidator(_fits_bcrypt)]
 
 
 class Token(BaseModel):
@@ -17,15 +29,21 @@ class CreateUserRequest(BaseModel):
     email: EmailStr
     first_name: str = Field(min_length=1)
     last_name: str = Field(min_length=1)
-    password: str = Field(min_length=8)
+    password: NewPassword
     # No `role`: clients must not choose their own role. New users are always "user".
 
-    @field_validator("password")
-    @classmethod
-    def password_fits_bcrypt(cls, v: str) -> str:
-        if len(v.encode()) > MAX_PASSWORD_BYTES:
-            raise ValueError(f"password must be at most {MAX_PASSWORD_BYTES} bytes")
-        return v
+
+class ChangePasswordRequest(BaseModel):
+    """Body for changing the current user's password."""
+
+    current_password: str
+    new_password: NewPassword
+
+    @model_validator(mode="after")
+    def new_differs_from_current(self) -> ChangePasswordRequest:
+        if self.new_password == self.current_password:
+            raise ValueError("new password must be different from the current password")
+        return self
 
 
 class UserRead(BaseModel):
