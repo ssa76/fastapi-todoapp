@@ -67,10 +67,21 @@ async def get_current_user(db: DbSession, token: Annotated[str, Depends(oauth2_s
 CurrentUser = Annotated[Users, Depends(get_current_user)]
 
 
+async def require_admin(user: CurrentUser) -> Users:
+    """Allow only admins: 401 without a valid token, 403 for logged-in non-admins."""
+    if user.role != "admin":
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Admin access required")
+    return user
+
+
+AdminUser = Annotated[Users, Depends(require_admin)]
+
+
 @router.post("", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 async def create_user(db: DbSession, body: CreateUserRequest):
     user = Users(
         **body.model_dump(exclude={"password"}),
+        role="user",  # never taken from the request
         hashed_password=await hash_password(body.password),
     )
     db.add(user)

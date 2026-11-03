@@ -18,7 +18,7 @@ class CreateUserRequest(BaseModel):
     first_name: str = Field(min_length=1)
     last_name: str = Field(min_length=1)
     password: str = Field(min_length=8)
-    role: str
+    # No `role`: clients must not choose their own role. New users are always "user".
 
     @field_validator("password")
     @classmethod

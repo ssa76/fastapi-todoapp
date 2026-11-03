@@ -16,7 +16,8 @@ async def get_todo(db: DbSession, user: CurrentUser, todo_id: Annotated[int, Pat
     request without a valid token always gets 401 (it can't probe which ids exist).
     Someone else's todo is a 404, not 403, so its existence isn't revealed either.
     """
-    todo = await db.scalar(select(Todos).where(Todos.id == todo_id, Todos.owner_id == user.id))
+    stmt = select(Todos).where(Todos.id == todo_id, Todos.owner_id == user.id)
+    todo = await db.scalar(stmt)
     if todo is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Todo not found")
     return todo

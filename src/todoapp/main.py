@@ -5,7 +5,7 @@ from fastapi import FastAPI
 
 from . import models
 from .database import engine
-from .routers import auth, todos
+from .routers import admin, auth, todos
 
 
 @asynccontextmanager
@@ -29,6 +29,7 @@ def create_app() -> FastAPI:
     # app.add_middleware(RequestLoggingMiddleware)
     # app.add_exception_handler(DomainError, domain_error_handler)
 
+    app.include_router(admin.router)
     app.include_router(auth.router)
     app.include_router(todos.router)
 
