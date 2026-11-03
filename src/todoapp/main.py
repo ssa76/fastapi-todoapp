@@ -18,10 +18,24 @@ async def lifespan(app: FastAPI):
     await engine.dispose()
 
 
-app = FastAPI(lifespan=lifespan)
+def create_app() -> FastAPI:
+    app = FastAPI(
+        title="Fast API Todo app",
+        version="1.0.0",
+        description="TODO application",
+        lifespan=lifespan,
+    )
 
-app.include_router(auth.router)
-app.include_router(todos.router)
+    # app.add_middleware(RequestLoggingMiddleware)
+    # app.add_exception_handler(DomainError, domain_error_handler)
+
+    app.include_router(auth.router)
+    app.include_router(todos.router)
+
+    return app
+
+
+app = create_app()
 
 
 def run() -> None:

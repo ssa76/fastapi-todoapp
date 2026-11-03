@@ -14,10 +14,10 @@ from todoapp.models import Users
 from todoapp.schemas import CreateUserRequest, Token, UserRead
 from todoapp.security import hash_password, verify_password
 
-router = APIRouter()
+router = APIRouter(prefix="/auth", tags=["auth"])
 
 # Tells FastAPI (and the /docs Authorize button) where clients get a token.
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
 
 async def authenticate_user(db: AsyncSession, username: str, password: str) -> Users | None:
@@ -67,7 +67,7 @@ async def get_current_user(db: DbSession, token: Annotated[str, Depends(oauth2_s
 CurrentUser = Annotated[Users, Depends(get_current_user)]
 
 
-@router.post("/auth", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 async def create_user(db: DbSession, body: CreateUserRequest):
     user = Users(
         **body.model_dump(exclude={"password"}),
