@@ -11,6 +11,7 @@ from .routers import admin, auth, todos, users
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Create tables once on startup, not as an import side effect.
+    # create_all only adds missing tables; it never changes existing ones.
     async with engine.begin() as conn:
         await conn.run_sync(models.Base.metadata.create_all)
     yield

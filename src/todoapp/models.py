@@ -4,7 +4,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from .database import Base
 
 # SQLAlchemy 2.x typed mappings: `Mapped[T]` is NOT NULL, `Mapped[T | None]` is nullable.
-# Column types are inferred from the annotation (str -> VARCHAR, int -> INTEGER, ...).
+# Column types are inferred from the annotation (str -> VARCHAR(255), int -> INTEGER, ...).
 
 
 class Users(Base):
