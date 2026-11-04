@@ -3,17 +3,14 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from . import models
 from .database import engine
 from .routers import admin, auth, todos, users
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Create tables once on startup, not as an import side effect.
-    # create_all only adds missing tables; it never changes existing ones.
-    async with engine.begin() as conn:
-        await conn.run_sync(models.Base.metadata.create_all)
+    # Tables are created and changed by Alembic, not here:
+    # run `uv run alembic upgrade head` before starting the app on a new database.
     yield
     # Close pooled connections on shutdown.
     await engine.dispose()

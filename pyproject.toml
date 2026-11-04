@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.15"
 dependencies = [
     "aiosqlite>=0.22.1",
+    "alembic>=1.20.1",
     "asyncpg>=0.32.0",
     "bcrypt>=5.0.0",
     "fastapi[standard]>=0.162.0",
@@ -31,6 +32,11 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]  # pycodestyle, pyflakes, import sorting, bugbear, pyupgrade
+
+[tool.ruff.lint.isort]
+# The local alembic/ migrations folder would otherwise make ruff treat the installed
+# `alembic` package as first-party code.
+known-third-party = ["alembic"]
 
 [dependency-groups]
 dev = [
