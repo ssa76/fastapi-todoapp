@@ -1,0 +1,24 @@
+# The API in a container, next to the lab Postgres. Use together with compose.postgres.yaml:
+#
+#   podman compose -f compose.postgres.yaml -f compose.app.yaml up -d --build
+#   podman compose -f compose.postgres.yaml -f compose.app.yaml logs -f app
+#   podman compose -f compose.postgres.yaml -f compose.app.yaml down
+#
+# JWT_SECRET_KEY (required) and the POSTGRES_* overrides are read from .env.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Containerfile
+    image: localhost/todoapp:latest
+    environment:
+      # "postgres" is the database service's name on the compose network.
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-todo}:${POSTGRES_PASSWORD:-todo}@postgres:5432/${POSTGRES_DB:-todoapp}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY in .env}
+    ports:
+      - "127.0.0.1:${APP_PORT:-8000}:8000" # localhost only
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
