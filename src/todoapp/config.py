@@ -8,9 +8,8 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    # SQLite by default; set DATABASE_URL to use the lab Postgres container, e.g.
-    #   postgresql+asyncpg://todo:todo@localhost:5432/todoapp
-    database_url: str = "sqlite+aiosqlite:///./todosapp.db"
+    # Required (no default), e.g. postgresql+asyncpg://todo:todo@localhost:5432/todoapp
+    database_url: str
 
     jwt_secret_key: str  # required: no default, so a missing key fails at startup
     jwt_algorithm: str = "HS256"

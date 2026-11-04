@@ -9,8 +9,6 @@ wheels/
 # Virtual environments
 .venv
 
-# SQLite database
-todosapp.db
 
 # Local secrets
 .env

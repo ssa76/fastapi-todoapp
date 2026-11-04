@@ -24,10 +24,6 @@ target_metadata = Base.metadata
 # so credentials stay out of the repo and the app and migrations use the same database.
 database_url = settings.database_url
 
-# SQLite can't ALTER most column definitions in place; "batch" mode recreates the table
-# instead. Only enabled for SQLite, where it's needed.
-render_as_batch = database_url.startswith("sqlite")
-
 
 def run_migrations_offline() -> None:
     """Emit migration SQL to stdout (`alembic upgrade head --sql`) without connecting."""
@@ -36,7 +32,6 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        render_as_batch=render_as_batch,
     )
 
     with context.begin_transaction():
@@ -47,7 +42,6 @@ def do_run_migrations(connection: Connection) -> None:
     context.configure(
         connection=connection,
         target_metadata=target_metadata,
-        render_as_batch=render_as_batch,
     )
 
     with context.begin_transaction():
