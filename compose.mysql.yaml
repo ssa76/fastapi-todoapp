@@ -1,0 +1,37 @@
+# MySQL for local labs.
+#
+#   podman compose -f compose.mysql.yaml up -d     # start
+#   podman compose -f compose.mysql.yaml ps        # status (wait for "healthy")
+#   podman compose -f compose.mysql.yaml down      # stop, keep data
+#   podman compose -f compose.mysql.yaml down -v   # stop and delete data
+#
+# App URL (needs `uv add aiomysql`):
+#   mysql+aiomysql://todo:todo@localhost:3306/todoapp
+#
+# Credentials and port can be overridden in .env (see .env.example).
+
+name: todoapp-mysql
+
+services:
+  mysql:
+    image: docker.io/library/mysql:8.4 # current LTS
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-todoapp}
+      MYSQL_USER: ${MYSQL_USER:-todo}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-todo}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+    ports:
+      - "127.0.0.1:${MYSQL_PORT:-3306}:3306" # localhost only
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      # Checks the app user can log in, not just that the server process is up.
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u \"$$MYSQL_USER\" -p\"$$MYSQL_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
