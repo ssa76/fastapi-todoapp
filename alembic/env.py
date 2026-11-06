@@ -13,8 +13,12 @@ from todoapp.database import Base
 # The Alembic Config object, giving access to the values in alembic.ini.
 config = context.config
 
-# Set up Python logging from alembic.ini.
-if config.config_file_name is not None:
+# A caller (the integration tests) can pass an open connection to migrate, instead of
+# Alembic connecting to settings.database_url itself.
+external_connection = config.attributes.get("connection")
+
+# Set up Python logging from alembic.ini, unless a caller (with its own logging) runs us.
+if config.config_file_name is not None and external_connection is None:
     fileConfig(config.config_file_name)
 
 # The models' tables, compared against the database by `alembic revision --autogenerate`.
@@ -59,7 +63,9 @@ async def run_migrations_online() -> None:
     await engine.dispose()
 
 
-if context.is_offline_mode():
+if external_connection is not None:
+    do_run_migrations(external_connection)
+elif context.is_offline_mode():
     run_migrations_offline()
 else:
     asyncio.run(run_migrations_online())

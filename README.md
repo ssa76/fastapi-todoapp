@@ -33,6 +33,8 @@ src/todoapp/
   routers/        auth, todos, users, admin
 alembic/          migration environment and versions/
 alembic.ini       Alembic configuration (no database URL in it)
+tests/unit/       fast tests, no database
+tests/integration/  API tests against a throwaway PostgreSQL (Testcontainers)
 Containerfile     app image
 compose.postgres.yaml   PostgreSQL for local development
 compose.app.yaml        the app as a container (used with compose.postgres.yaml)
@@ -205,3 +207,25 @@ DATABASE_URL=postgresql+asyncpg://todo:todo@localhost:5432/todoapp_scratch uv ru
 uv run ruff check --fix   # lint (and fix what's safe)
 uv run ruff format        # format
 ```
+
+### Tests
+
+```bash
+uv run pytest                       # everything (starts PostgreSQL on Podman)
+uv run pytest -m "not integration"  # only the fast tests, no Podman needed
+```
+
+Integration tests (everything in `tests/integration/`) use
+[Testcontainers](https://testcontainers.com/) to start a `postgres:18` container on Podman
+once per run. They build the schema with `alembic upgrade head`, so the migrations get tested too, and
+call the API through `httpx.AsyncClient`. They don't need your `.env` or the compose
+database.
+
+- **Podman only:** the tests look up Podman's API socket themselves (`podman machine` on
+  macOS, `podman.socket` on Linux) and point Testcontainers at it. They also turn off Ryuk
+  (Testcontainers' cleanup container); the test container is still removed when the run
+  ends. If Podman isn't running, the integration tests fail with a hint on how to start it.
+- **Isolation:** each test runs inside a transaction that is rolled back afterwards, and the
+  app's own commits become savepoints within it. Every test starts with empty tables.
+- **Fixtures** (`tests/integration/conftest.py`): `client`, `db_session`, `make_user`,
+  `make_todo`, `user`, `admin`, `auth_headers(user)`, `password`.
