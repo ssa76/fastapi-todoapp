@@ -8,10 +8,12 @@ authors = [
 ]
 requires-python = ">=3.15"
 dependencies = [
+    "aiofiles>=25.1.0",
     "alembic>=1.20.1",
     "asyncpg>=0.32.0",
     "bcrypt>=5.0.0",
     "fastapi[standard]>=0.162.0",
+    "jinja2>=3.1.6",
     "pydantic-settings>=2.16.2",
     "pyjwt>=2.15.1",
     "python-multipart>=0.0.33",

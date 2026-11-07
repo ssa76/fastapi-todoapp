@@ -2,9 +2,11 @@ import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from .database import engine
-from .routers import admin, auth, root, todos, users
+from .routers import admin, auth, pages, root, todos, users
+from .templating import STATIC_DIR
 
 
 @asynccontextmanager
@@ -32,6 +34,10 @@ def create_app() -> FastAPI:
     app.include_router(todos.router)
     app.include_router(users.router)
     app.include_router(root.router)
+    app.include_router(pages.router)
+
+    # CSS, JS and images, referenced from templates as url_for('static', path=...).
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
     return app
 
