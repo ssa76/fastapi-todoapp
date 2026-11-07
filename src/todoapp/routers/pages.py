@@ -15,3 +15,7 @@ def home(request: Request):
 @router.get("/auth/login-page", response_class=HTMLResponse)
 def login_page(request: Request):
     return templates.TemplateResponse(request, "login.html")
+
+@router.get("/auth/register-page", response_class=HTMLResponse)
+def register_page(request: Request):
+    return templates.TemplateResponse(request, "register.html")
