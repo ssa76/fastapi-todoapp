@@ -9,5 +9,9 @@ router = APIRouter(tags=["pages"], include_in_schema=False)
 
 
 @router.get("/", response_class=HTMLResponse)
-async def home(request: Request):
+def home(request: Request):
     return templates.TemplateResponse(request, "home.html")
+
+@router.get("/auth/login-page", response_class=HTMLResponse)
+def login_page(request: Request):
+    return templates.TemplateResponse(request, "login.html")
