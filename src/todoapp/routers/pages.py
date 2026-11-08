@@ -44,18 +44,27 @@ def redirect_to_login() -> RedirectResponse:
     return response
 
 
-@router.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    return RedirectResponse(url="/todos-page", status_code=status.HTTP_302_FOUND)
+def redirect_to_todos() -> RedirectResponse:
+    return RedirectResponse(router.url_path_for("todo_page"), status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.get("/")
+async def home():
+    # The todo list is the start page; it sends logged-out visitors on to /login.
+    return redirect_to_todos()
 
 
 @router.get("/login", response_class=HTMLResponse)
-async def login_page(request: Request):
+async def login_page(request: Request, user: PageUser):
+    if user is not None:  # already logged in
+        return redirect_to_todos()
     return templates.TemplateResponse(request, "login.html")
 
 
 @router.get("/register", response_class=HTMLResponse)
-async def register_page(request: Request):
+async def register_page(request: Request, user: PageUser):
+    if user is not None:
+        return redirect_to_todos()
     return templates.TemplateResponse(request, "register.html")
 
 

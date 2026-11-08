@@ -30,7 +30,10 @@ src/todoapp/
   models.py       SQLAlchemy models (Users, Todos)
   schemas.py      Pydantic request/response models
   security.py     bcrypt password hashing
-  routers/        auth, todos, users, admin
+  templating.py   Jinja2 setup and the static_url() helper
+  routers/        auth, todos, users, admin (JSON API); pages (HTML)
+  templates/      Jinja2 pages: layout.html, partials/, one file per page
+  static/         css/ and js/ (our own), vendor/ (Bootstrap, jQuery)
 alembic/          migration environment and versions/
 alembic.ini       Alembic configuration (no database URL in it)
 tests/unit/       fast tests, no database
@@ -79,7 +82,7 @@ uv run alembic upgrade head
 uv run todoapp
 ```
 
-Open <http://localhost:8000/docs>.
+Open <http://localhost:8000/> for the web pages, or <http://localhost:8000/docs> for the API.
 
 **The app does not create tables itself.** Run `alembic upgrade head` on every new database, and after pulling new migrations.
 
@@ -115,6 +118,32 @@ podman exec todoapp-postgres_postgres_1 \
 podman compose -f compose.postgres.yaml down      # stop, keep data
 podman compose -f compose.postgres.yaml down -v   # stop and delete all data
 ```
+
+## Web pages
+
+Server-rendered with Jinja2 and Bootstrap 4. They call the same JSON API from
+`static/js/base.js`.
+
+| URL | Page |
+|---|---|
+| `/` | redirects to `/todos-page` |
+| `/login`, `/register` | sign in / sign up (redirect to `/todos-page` if already logged in) |
+| `/todos-page` | your todos |
+| `/add-todos-page` | new todo |
+| `/edit-todos-page/{id}` | edit or delete a todo |
+
+- **Login:** after `POST /auth/token`, `base.js` stores the token in the `access_token`
+  cookie. Pages read it from there; API calls send it as `Authorization: Bearer`. A page
+  without a valid token redirects to `/login`, and an API call that gets 401 logs out.
+- **Page URLs never start with `/auth` or `/todos`,** so they can't collide with API routes
+  such as `/todos/{todo_id}`.
+- **Static files:** link them with `{{ static_url('css/base.css') }}` instead of
+  `url_for('static', ...)`. It adds a content hash (`?v=...`), so browsers fetch changed
+  files at once, and fails on a missing file instead of a silent 404.
+- **Third-party files** live in `static/vendor/<name>-<version>/`: Bootstrap 4.6.2 (the
+  bundle includes Popper) and jQuery 3.7.1 slim. To upgrade, `npm pack <name>@<version>`
+  into a temporary folder, copy the files from its `dist/` into a new versioned folder,
+  update `templates/layout.html` and delete the old folder.
 
 ## Run in a container
 

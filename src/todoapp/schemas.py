@@ -30,6 +30,7 @@ class CreateUserRequest(BaseModel):
     first_name: str = Field(min_length=1)
     last_name: str = Field(min_length=1)
     password: NewPassword
+    phone_number: str | None = Field(default=None, min_length=1, max_length=32)
     # No `role`: clients must not choose their own role. New users are always "user".
 
 
@@ -58,6 +59,7 @@ class UserRead(BaseModel):
     last_name: str
     role: str
     is_active: bool
+    phone_number: str | None
 
 
 class TodoRequest(BaseModel):

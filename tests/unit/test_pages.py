@@ -22,12 +22,26 @@ def test_auth_pages_render_inside_layout(path, form_id):
     assert "/static/js/base.js" in html
 
 
-def test_home_page_links_to_login_and_register():
-    response = client.get("/")
+def test_root_redirects_to_todo_page():
+    response = client.get("/", follow_redirects=False)
 
-    assert response.status_code == status.HTTP_200_OK
-    assert 'href="http://testserver/login"' in response.text
-    assert 'href="http://testserver/register"' in response.text
+    assert response.status_code == status.HTTP_303_SEE_OTHER
+    assert response.headers["location"] == "/todos-page"
+
+
+@pytest.mark.parametrize(("path", "title"), [("/login", "Login"), ("/register", "Register")])
+def test_pages_have_their_own_title(path, title):
+    assert f"<title>{title} · Todo App</title>" in client.get(path).text
+
+
+def test_register_form_matches_the_api():
+    html = client.get("/register").text
+
+    assert 'name="role"' not in html  # the server always assigns "user"
+    phone = html[html.index('name="phone_number"') :].split("/>")[0]
+    assert "required" not in phone  # optional
+    password = html[html.index('name="password"') :].split("/>")[0]
+    assert 'minlength="8"' in password
 
 
 def test_base_css_loads_after_bootstrap():

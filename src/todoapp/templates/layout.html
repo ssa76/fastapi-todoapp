@@ -6,7 +6,7 @@
     <link rel="stylesheet" type="text/css" href="{{ static_url('vendor/bootstrap-4.6.2/bootstrap.min.css') }}">
     <!-- After Bootstrap, so our rules win over Bootstrap's at equal specificity. -->
     <link rel="stylesheet" type="text/css" href="{{ static_url('css/base.css') }}">
-    <title>Todo App</title>
+    <title>{% block title %}{% endblock %}{% if self.title() %} · {% endif %}Todo App</title>
 </head>
 <body>
     {% include 'partials/navbar.html' %}

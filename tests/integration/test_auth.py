@@ -81,3 +81,22 @@ async def test_inactive_user_token_rejected(client, make_user, auth_headers):
 async def test_garbage_token_rejected(client):
     response = await client.get("/users/me", headers={"Authorization": "Bearer not-a-jwt"})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+async def test_register_with_phone_number(client):
+    response = await client.post("/auth", json={**NEW_USER, "phone_number": "+61 400 000 000"})
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["phone_number"] == "+61 400 000 000"
+
+
+async def test_register_phone_number_is_optional(client):
+    response = await client.post("/auth", json=NEW_USER)
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["phone_number"] is None
+
+
+async def test_register_rejects_empty_phone_number(client):
+    response = await client.post("/auth", json={**NEW_USER, "phone_number": ""})
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT

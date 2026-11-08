@@ -103,3 +103,21 @@ async def test_edit_page_for_missing_todo_is_not_found(client, user):
     login(client, user)
     response = await client.get("/edit-todos-page/999999")
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_login_and_register_pages_redirect_when_logged_in(client, user):
+    login(client, user)
+
+    for path in ("/login", "/register"):
+        response = await client.get(path, follow_redirects=False)
+        assert response.status_code == status.HTTP_303_SEE_OTHER, path
+        assert response.headers["location"] == "/todos-page"
+
+
+async def test_login_page_shown_for_stale_cookie(client):
+    client.cookies.set("access_token", "expired-or-garbage")
+
+    response = await client.get("/login")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert 'id="loginForm"' in response.text
