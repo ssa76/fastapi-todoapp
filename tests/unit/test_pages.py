@@ -33,7 +33,7 @@ def test_home_page_links_to_login_and_register():
 def test_base_css_loads_after_bootstrap():
     # Otherwise Bootstrap's body color/background override ours.
     html = client.get("/login").text
-    assert html.index("css/bootstrap.css") < html.index("css/base.css")
+    assert html.index("bootstrap.min.css") < html.index("css/base.css")
 
 
 def test_static_files_are_served():

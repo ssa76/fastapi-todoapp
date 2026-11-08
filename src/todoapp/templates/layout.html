@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="{{ static_url('css/bootstrap.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ static_url('vendor/bootstrap-4.6.2/bootstrap.min.css') }}">
     <!-- After Bootstrap, so our rules win over Bootstrap's at equal specificity. -->
     <link rel="stylesheet" type="text/css" href="{{ static_url('css/base.css') }}">
     <title>Todo App</title>
@@ -13,9 +13,10 @@
 
     {% block content %}
     {% endblock %}
-    <script src="{{ static_url('js/jquery-slim.js') }}"></script>
-    <script src="{{ static_url('js/popper.js') }}"></script>
-    <script src="{{ static_url('js/bootstrap.js') }}"></script>
+    <!-- Third-party files live in static/vendor/<name>-<version>/ (from the npm packages).
+         The Bootstrap bundle includes Popper; jQuery slim is enough for Bootstrap 4. -->
+    <script src="{{ static_url('vendor/jquery-3.7.1/jquery.slim.min.js') }}"></script>
+    <script src="{{ static_url('vendor/bootstrap-4.6.2/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ static_url('js/base.js') }}" defer></script>
 </body>
 </html>
