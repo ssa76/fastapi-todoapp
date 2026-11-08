@@ -46,7 +46,7 @@ def redirect_to_login() -> RedirectResponse:
 
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    return templates.TemplateResponse(request, "home.html")
+    return RedirectResponse(url="/todos-page", status_code=status.HTTP_302_FOUND)
 
 
 @router.get("/login", response_class=HTMLResponse)
