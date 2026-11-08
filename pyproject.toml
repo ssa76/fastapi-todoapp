@@ -50,6 +50,8 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# importlib: test files in different folders may share a name (unit/ and integration/).
+addopts = ["--import-mode=importlib"]
 asyncio_mode = "auto"
 # One event loop for the whole run: the session-scoped engine and every test share it
 # (asyncpg connections can't be used from a different loop than the one that made them).

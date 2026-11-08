@@ -16,7 +16,7 @@
             };
 
             try {
-                const response = await fetch('/todos/todo', {
+                const response = await fetch('/todos', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -30,7 +30,7 @@
                 } else {
                     // Handle error
                     const errorData = await response.json();
-                    alert(`Error: ${errorData.detail}`);
+                    alert(`Error: ${errorMessage(errorData)}`);
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -59,14 +59,11 @@
 
         try {
             const token = getCookie('access_token');
-            console.log(token)
             if (!token) {
                 throw new Error('Authentication token not found');
             }
 
-            console.log(`${todoId}`)
-
-            const response = await fetch(`/todos/todo/${todoId}`, {
+            const response = await fetch(`/todos/${todoId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -76,11 +73,11 @@
             });
 
             if (response.ok) {
-                window.location.href = '/todos/todo-page'; // Redirect to the todo page
+                window.location.href = '/todos-page'; // Redirect to the todo page
             } else {
                 // Handle error
                 const errorData = await response.json();
-                alert(`Error: ${errorData.detail}`);
+                alert(`Error: ${errorMessage(errorData)}`);
             }
         } catch (error) {
             console.error('Error:', error);
@@ -98,7 +95,7 @@
                     throw new Error('Authentication token not found');
                 }
 
-                const response = await fetch(`/todos/todo/${todoId}`, {
+                const response = await fetch(`/todos/${todoId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -107,11 +104,11 @@
 
                 if (response.ok) {
                     // Handle success
-                    window.location.href = '/todos/todo-page'; // Redirect to the todo page
+                    window.location.href = '/todos-page'; // Redirect to the todo page
                 } else {
                     // Handle error
                     const errorData = await response.json();
-                    alert(`Error: ${errorData.detail}`);
+                    alert(`Error: ${errorMessage(errorData)}`);
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -148,15 +145,13 @@
                 if (response.ok) {
                     // Handle success (e.g., redirect to dashboard)
                     const data = await response.json();
-                    // Delete any cookies available
-                    logout();
-                    // Save token to cookie
-                    document.cookie = `access_token=${data.access_token}; path=/`;
-                    window.location.href = '/todos/todo-page'; // Change this to your desired redirect page
+                    // Save token to cookie (SameSite=Lax: not sent on cross-site POSTs)
+                    document.cookie = `access_token=${data.access_token}; path=/; SameSite=Lax`;
+                    window.location.href = '/todos-page'; // Change this to your desired redirect page
                 } else {
                     // Handle error
                     const errorData = await response.json();
-                    alert(`Error: ${errorData.detail}`);
+                    alert(`Error: ${errorMessage(errorData)}`);
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -200,11 +195,11 @@
                 });
 
                 if (response.ok) {
-                    window.location.href = '/auth/login-page';
+                    window.location.href = '/login';
                 } else {
                     // Handle error
                     const errorData = await response.json();
-                    alert(`Error: ${errorData.message}`);
+                    alert(`Error: ${errorMessage(errorData)}`);
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -216,6 +211,15 @@
 
 
 
+
+    // Helper: readable message from a FastAPI error body ({"detail": "..."} or a 422 list)
+    function errorMessage(errorData) {
+        const detail = errorData && errorData.detail;
+        if (Array.isArray(detail)) {
+            return detail.map((e) => `${e.loc.slice(1).join('.')}: ${e.msg}`).join('\n');
+        }
+        return detail || 'Request failed';
+    };
 
     // Helper function to get a cookie by name
     function getCookie(name) {
@@ -247,5 +251,5 @@
         }
     
         // Redirect to the login page
-        window.location.href = '/auth/login-page';
+        window.location.href = '/login';
     };
