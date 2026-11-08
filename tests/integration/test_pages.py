@@ -46,3 +46,60 @@ async def test_page_routes_dont_shadow_the_api(client, user, make_todo, auth_hea
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["id"] == todo.id
+
+
+async def test_todo_page_marks_completed_todos(client, user, make_todo):
+    await make_todo(user, "Done task", complete=True)
+    await make_todo(user, "Open task")
+    login(client, user)
+
+    html = (await client.get("/todos-page")).text
+
+    assert '<tr class="table-success">' in html
+    assert '<td class="strike-through-td">Done task</td>' in html
+    assert '<td class="">Open task</td>' in html
+    assert 'href="http://test/todos-page">Home</a>' in html  # navbar link
+
+
+async def test_add_page_requires_login(client):
+    response = await client.get("/add-todos-page", follow_redirects=False)
+    assert response.status_code == status.HTTP_303_SEE_OTHER
+
+
+async def test_add_page_renders_form(client, user):
+    login(client, user)
+
+    response = await client.get("/add-todos-page")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert 'id="todoForm"' in response.text
+
+
+async def test_edit_page_prefills_todo(client, user, make_todo):
+    todo = await make_todo(user, "Fix bike", priority=4, complete=True)
+    login(client, user)
+
+    response = await client.get(f"/edit-todos-page/{todo.id}")
+
+    assert response.status_code == status.HTTP_200_OK
+    html = response.text
+    assert 'value="Fix bike"' in html
+    assert '<option value="4" selected>4</option>' in html
+    assert html.count("selected>") == 1  # only the todo's priority
+    assert 'name="complete"\n                        checked' in html
+    assert 'id="deleteButton"' in html  # base.js wires this up
+
+
+async def test_edit_page_for_other_users_todo_is_not_found(client, user, make_user, make_todo):
+    bobs_todo = await make_todo(await make_user("bob"))
+    login(client, user)
+
+    response = await client.get(f"/edit-todos-page/{bobs_todo.id}")
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_edit_page_for_missing_todo_is_not_found(client, user):
+    login(client, user)
+    response = await client.get("/edit-todos-page/999999")
+    assert response.status_code == status.HTTP_404_NOT_FOUND

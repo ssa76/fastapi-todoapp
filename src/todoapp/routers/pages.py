@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Path, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import select
 
@@ -67,3 +67,27 @@ async def todo_page(request: Request, db: DbSession, user: PageUser):
     stmt = select(Todos).where(Todos.owner_id == user.id).order_by(Todos.id)
     todos = (await db.scalars(stmt)).all()
     return templates.TemplateResponse(request, "todo.html", {"user": user, "todos": todos})
+
+
+@router.get("/add-todos-page", response_class=HTMLResponse)
+async def add_todo_page(request: Request, user: PageUser):
+    if user is None:
+        return redirect_to_login()
+
+    return templates.TemplateResponse(request, "add.html", {"user": user})
+
+
+@router.get("/edit-todos-page/{todo_id}", response_class=HTMLResponse)
+async def edit_todo_page(
+    request: Request, db: DbSession, user: PageUser, todo_id: Annotated[int, Path(gt=0)]
+):
+    if user is None:
+        return redirect_to_login()
+
+    # Someone else's todo is a 404 too, like the API: its existence isn't revealed.
+    stmt = select(Todos).where(Todos.id == todo_id, Todos.owner_id == user.id)
+    todo = await db.scalar(stmt)
+    if todo is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Todo not found")
+
+    return templates.TemplateResponse(request, "edit.html", {"user": user, "todo": todo})

@@ -85,7 +85,8 @@
         }
     });
 
-        document.getElementById('deleteButton').addEventListener('click', async function () {
+        const deleteButton = document.getElementById('deleteButton');
+        if (deleteButton) deleteButton.addEventListener('click', async function () {
             var url = window.location.pathname;
             const todoId = url.substring(url.lastIndexOf('/') + 1);
 

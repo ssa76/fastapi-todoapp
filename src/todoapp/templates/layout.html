@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="{{ static_url('css/base.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ static_url('css/bootstrap.css') }}">
+    <!-- After Bootstrap, so our rules win over Bootstrap's at equal specificity. -->
+    <link rel="stylesheet" type="text/css" href="{{ static_url('css/base.css') }}">
     <title>Todo App</title>
 </head>
 <body>

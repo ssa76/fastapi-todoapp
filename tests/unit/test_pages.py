@@ -22,10 +22,18 @@ def test_auth_pages_render_inside_layout(path, form_id):
     assert "/static/js/base.js" in html
 
 
-def test_home_page():
+def test_home_page_links_to_login_and_register():
     response = client.get("/")
+
     assert response.status_code == status.HTTP_200_OK
-    assert response.headers["content-type"].startswith("text/html")
+    assert 'href="http://testserver/login"' in response.text
+    assert 'href="http://testserver/register"' in response.text
+
+
+def test_base_css_loads_after_bootstrap():
+    # Otherwise Bootstrap's body color/background override ours.
+    html = client.get("/login").text
+    assert html.index("css/bootstrap.css") < html.index("css/base.css")
 
 
 def test_static_files_are_served():

@@ -1,14 +1,15 @@
 <div>
     <nav class="navbar navbar-expand-md navbar-dark main-color fixed-top">
-        <a class="navbar-brand" href="#">Todo App</a>
+        <a class="navbar-brand" href="{{ url_for('todo_page') if user else url_for('home') }}">Todo App</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 {% if user %}
-                <li class="nav-item active">
-                    <a class="nav-link" href="/todo-page">Home</a>
+                {% set todos_url = url_for('todo_page') %}
+                <li class="nav-item {{ 'active' if request.url.path == todos_url.path }}">
+                    <a class="nav-link" href="{{ todos_url }}">Home</a>
                 </li>
                 {% endif %}
             </ul>
@@ -16,9 +17,9 @@
             <ul class="navbar-nav ml-auto">
                 {% if user %}
                 <li class="nav-item m-1">
-                    <a type="button" class="btn btn-outline-light text-white" onclick="logout()">
+                    <button type="button" class="btn btn-outline-light" onclick="logout()">
                         Logout
-                    </a>
+                    </button>
                 </li>
                 {% endif %}
             </ul>
